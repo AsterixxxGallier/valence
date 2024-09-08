@@ -1,11 +1,15 @@
 #![allow(clippy::type_complexity)]
 
+use std::num::NonZeroU32;
 use rand::seq::SliceRandom;
 use valence::prelude::*;
 use valence_boss_bar::{
     BossBarBundle, BossBarColor, BossBarDivision, BossBarFlags, BossBarHealth, BossBarStyle,
     BossBarTitle,
 };
+use valence_registry::dimension_type::DimensionTypeId;
+use valence_registry::Registry;
+use valence_server::CompressionThreshold;
 use valence_server::entity::cow::CowEntityBundle;
 use valence_server::message::ChatMessageEvent;
 use valence_text::color::NamedColor;
@@ -16,6 +20,65 @@ const SPAWN_Y: i32 = 64;
 struct CustomBossBar;
 
 pub fn main() {
+    {
+        use evenio::prelude::*;
+        use evenio::prelude::Component;
+
+        let mut world = World::new();
+
+        #[derive(GlobalEvent)]
+        struct Startup;
+
+        #[derive(Component, Debug)]
+        struct Server {
+            /// Incremented on every tick.
+            current_tick: i64,
+            threshold: CompressionThreshold,
+            tick_rate: NonZeroU32,
+        }
+
+        #[derive(Component, Default, Debug)]
+        struct DimensionTypeRegistry {
+            reg: Registry<DimensionTypeId, DimensionType>,
+        }
+
+        #[derive(Component, Default, Debug)]
+        struct BiomeRegistry {
+            reg: Registry<BiomeId, Biome>,
+        }
+
+        #[derive(Component, Debug)]
+        struct ChunkLayer {}
+
+        #[derive(Component, Debug)]
+        struct EntityLayer {}
+
+        #[derive(ComponentSet)]
+        struct LayerBundle {
+            pub chunk: ChunkLayer,
+            pub entity: EntityLayer,
+        }
+
+        fn assert_event<T: GlobalEvent>() {}
+        
+        assert_event::<Spawn<LayerBundle>>();
+        
+        world.add_handler(|_: Receiver<Startup>, server: Single<&Server>, sender: Sender<(Spawn<LayerBundle>)>| {
+            sender.spawn(LayerBundle {
+                chunk: ChunkLayer {},
+                entity: EntityLayer {},
+            });
+            println!("spawned layer bundle");
+        });
+        
+        world.spawn(Server {
+            current_tick: 0,
+            threshold: Default::default(),
+            tick_rate: NonZeroU32::new(20).unwrap(),
+        });
+        world.send(Startup);
+    }
+
     App::new()
         .add_plugins(DefaultPlugins)
         .add_systems(Startup, setup)

@@ -10,6 +10,40 @@ use valence_protocol::WritePacket;
 use crate::client::{Client, UpdateClientsSet};
 use crate::event_loop::{EventLoopPreUpdate, PacketEvent};
 
+pub mod new {
+    use std::time::Duration;
+    use evenio::prelude::*;
+    use crate::keepalive::KeepaliveState;
+    use crate::scheduler::Scheduler;
+
+    #[derive(Component, Debug)]
+    pub struct KeepaliveSettings {
+        // How long to wait before sending keepalives and how long to wait for a response.
+        pub period: Duration,
+    }
+
+    impl Default for KeepaliveSettings {
+        fn default() -> Self {
+            Self {
+                period: Duration::from_secs(8),
+            }
+        }
+    }
+
+    pub fn keepalive_plugin(world: &mut World) {
+        world.spawn(KeepaliveSettings::default());
+        // TODO: When spawning an entity with the client bundle, a spawn event
+        //  for that bundle is sent, but no insert event for the keep-alive
+        //  state. evenio may need to be reworked to return to individual insert
+        //  / remove events, which are buffered somehow to improve performance
+        //  over actually individual component insertions/removals.
+        world.add_handler(|_: Receiver<Insert<KeepaliveState>>| {
+            
+        });
+        world.single_mut::<&mut Scheduler>().unwrap().schedule()
+    }
+}
+
 pub struct KeepalivePlugin;
 
 impl Plugin for KeepalivePlugin {

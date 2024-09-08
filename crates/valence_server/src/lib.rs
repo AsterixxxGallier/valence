@@ -19,6 +19,8 @@ pub mod message;
 pub mod movement;
 pub mod op_level;
 pub mod resource_pack;
+// TODO: Find a better place for this module?
+pub mod scheduler;
 pub mod spawn;
 pub mod status;
 pub mod status_effect;

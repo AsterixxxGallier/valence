@@ -73,6 +73,7 @@ valence_world_border = { workspace = true, optional = true }
 [dev-dependencies]
 anyhow.workspace = true
 clap.workspace = true
+evenio.workspace = true
 divan.workspace = true
 flume.workspace = true
 noise.workspace = true     # For the terrain example.
@@ -135,6 +136,7 @@ divan = "0.1.14"
 eframe = { version = "0.28.1" }
 egui = "0.28.1"
 egui_dock = "0.13"
+evenio = { version = "0.6.0", path = "../evenio" }
 flate2 = "1.0.30"
 flume = "0.11.0"
 fs_extra = "1.3.0"
